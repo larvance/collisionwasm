@@ -1,0 +1,12 @@
+.idea
+.vscode
+.gitignore
+target
+.npmignore
+Cargo.lock
+Cargo.toml
+node_modules
+pkg/.gitignore
+pkg/package.json
+pkg/README.md
+tests

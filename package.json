@@ -1,0 +1,25 @@
+{
+  "name": "collisionwasm",
+  "version": "1.0.0",
+  "description": "Simple but very useful image collision check written in Rust which is compiled to WebAssembly.",
+  "main": "lib.js",
+  "scripts": {
+    "build": "wasm-pack build --release --target web"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/larvance/collisionwasm.git"
+  },
+  "keywords": [
+    "collision",
+    "fast",
+    "rust",
+    "wasm"
+  ],
+  "author": "larvance",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/larvance/collisionwasm/issues"
+  },
+  "homepage": "https://github.com/larvance/collisionwasm#readme"
+}

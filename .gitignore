@@ -1,0 +1,6 @@
+.idea
+.vscode
+Cargo.lock
+target
+pkg
+node_modules

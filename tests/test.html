@@ -1,0 +1,39 @@
+<body style="margin: 0; overflow: hidden;">
+<canvas></canvas>
+</body>
+<script type="module">
+    import {Sprite} from "../lib.js";
+
+    const canvas = document.querySelector("canvas");
+    const ctx = canvas.getContext("2d");
+
+    const mario = await Sprite.loadImage("./mario.png", 25);
+    const goomba = await Sprite.loadImage("./goomba.png", 25);
+
+    let marioX = 100, marioY = 100;
+    let goombaX = 200, goombaY = 200;
+
+    function render() {
+        requestAnimationFrame(render);
+        canvas.width = innerWidth;
+        canvas.height = innerHeight;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        mario.draw(ctx, marioX, marioY);
+        goomba.draw(ctx, goombaX, goombaY);
+
+        const collision = mario.checkCollision(goomba, marioX, marioY, goombaX, goombaY);
+
+        ctx.fillStyle = collision ? "red" : "green";
+        ctx.font = "30px Arial";
+        ctx.fillText(collision ? "Collision Detected!" : "No Collision", 10, 30);
+    }
+
+    render();
+
+    addEventListener("mousemove", e => {
+        marioX = Math.round(e.pageX - mario.width / 2);
+        marioY = Math.round(e.pageY - mario.height / 2);
+    });
+</script>
+
