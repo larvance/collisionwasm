@@ -2,7 +2,7 @@ import init, {check_collision} from "./pkg/collisionwasm.js";
 
 await init();
 
-export {check_collision as checkCollisionRaw} from "./pkg";
+export {check_collision as checkCollisionRaw} from "./pkg/collisionwasm.js";
 
 export function loadImage(src, scale = 1, smoothing = false) {
     return new Promise((resolve, reject) => {
