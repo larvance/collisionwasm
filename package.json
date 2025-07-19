@@ -15,7 +15,10 @@
     "collision",
     "fast",
     "rust",
-    "wasm"
+    "wasm",
+    "pixel",
+    "perfect",
+    "image"
   ],
   "author": "larvance",
   "license": "MIT",
