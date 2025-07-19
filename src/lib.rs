@@ -3,7 +3,8 @@ use wasm_bindgen::prelude::*;
 #[wasm_bindgen]
 pub fn check_collision(
     data_a: &[u8], width_a: usize, height_a: usize, offset_x_a: isize, offset_y_a: isize,
-    data_b: &[u8], width_b: usize, height_b: usize, offset_x_b: isize, offset_y_b: isize
+    data_b: &[u8], width_b: usize, height_b: usize, offset_x_b: isize, offset_y_b: isize,
+    alpha_threshold: u8,
 ) -> bool {
     let start_x = offset_x_a.max(offset_x_b);
     let start_y = offset_y_a.max(offset_y_b);
@@ -29,7 +30,7 @@ pub fn check_collision(
             let alpha_a = data_a.get(ia as usize).copied().unwrap_or(0);
             let alpha_b = data_b.get(ib as usize).copied().unwrap_or(0);
 
-            if alpha_a > 0 && alpha_b > 0 {
+            if alpha_a > alpha_threshold && alpha_b > alpha_threshold {
                 return true;
             }
         }

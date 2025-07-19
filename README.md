@@ -1,4 +1,4 @@
-# collisionwasm
+# CollisionWASM
 
 Pixel-perfect collision detection in the browser using WebAssembly.
 
@@ -10,24 +10,69 @@ npm install collisionwasm
 
 ## Usage
 
+You can check the demo in the `demo/` folder or
+at [https://larvance.com/collisionwasm/demo/](https://larvance.com/collisionwasm/demo/).
+
+First import the `Sprite` class from the package:
+
 ```js
 import {Sprite} from "collisionwasm";
+```
 
-const sprite = new Sprite("./sprite.png"); // Optionally you can give in the height of the sprite as the second argument
+### Creating a Sprite
 
-await sprite.wait(); // Since a path was given, we need to wait for the image to load
+If you have the path or the URL of the sprite image, you can create a `Sprite` instance like this:
 
-// Or you can just use the loadImage method
-const mario = await Sprite.loadImage("./mario.png", 25);
-const goomba = await Sprite.loadImage("./goomba.png", 25);
+```js
+const sprite = Sprite.fromPath("./sprite.png");
 
-// The coordinates are the top-left corner of the sprite, the rest is handled by the library
-// This will check every pixel and find if any of them overlap in an opaque pixel
-const collision = mario.checkCollision(goomba, marioX, marioY, goombaX, goombaY);
+// Since it takes time to load the image from an external source,
+// you can use the `wait` method to wait for the image to be loaded.
+// If you render immediately, it will just render a blank sprite.
+// Although if you render inside a `requestAnimationFrame` loop, it will work fine.
+await sprite.wait();
+```
 
-if (collision) {
-    console.log("Collision detected!");
+If you have an `Image` or `Canvas` instance you can create a `Sprite` instance like this:
+
+```js
+const sprite = Sprite.fromImage(image);
+```
+
+If you have an `ImageData` instance you can create a `Sprite` instance like this:
+
+```js
+const sprite = Sprite.fromData(imageData);
+```
+
+### Rendering a Sprite
+
+You can simply use the `draw` method to render the sprite on a `CanvasRenderingContext2D`:
+
+```js
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+let x = 100, y = 100;
+
+sprite.draw(ctx, x, y);
+```
+
+### Collision Detection
+
+To check if two sprites are colliding, you can use the `collidesWith` method:
+
+```js
+const sprite1 = Sprite.fromPath("./sprite1.png");
+const sprite2 = Sprite.fromPath("./sprite2.png");
+
+await Promise.all([sprite1.wait(), sprite2.wait()]);
+
+const isColliding = sprite1.collidesWith(sprite2, x1, y1, x2, y2);
+
+if (isColliding) {
+    console.log("Sprites are colliding!");
 } else {
-    console.log("No collision.");
+    console.log("Sprites are not colliding.");
 }
 ```

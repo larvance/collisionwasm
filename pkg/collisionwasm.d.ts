@@ -1,12 +1,12 @@
 /* tslint:disable */
 /* eslint-disable */
-export function check_collision(data_a: Uint8Array, width_a: number, height_a: number, offset_x_a: number, offset_y_a: number, data_b: Uint8Array, width_b: number, height_b: number, offset_x_b: number, offset_y_b: number): boolean;
+export function check_collision(data_a: Uint8Array, width_a: number, height_a: number, offset_x_a: number, offset_y_a: number, data_b: Uint8Array, width_b: number, height_b: number, offset_x_b: number, offset_y_b: number, alpha_threshold: number): boolean;
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
-  readonly check_collision: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number, l: number) => number;
+  readonly check_collision: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number, l: number, m: number) => number;
   readonly __wbindgen_export_0: WebAssembly.Table;
   readonly __wbindgen_malloc: (a: number, b: number) => number;
   readonly __wbindgen_start: () => void;

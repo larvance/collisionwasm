@@ -7,33 +7,68 @@
     const canvas = document.querySelector("canvas");
     const ctx = canvas.getContext("2d");
 
-    const mario = await Sprite.loadImage("./mario.png", 25);
-    const goomba = await Sprite.loadImage("./goomba.png", 25);
+    const cursor = Sprite.fromPath("./cursor.png").scale(0.5); // scale down
+    const steve = Sprite.fromPath("./imsteve.png").scale(0.5); // scale down
 
-    let marioX = 100, marioY = 100;
-    let goombaX = 200, goombaY = 200;
+    let x = innerWidth / 2, y = innerHeight / 2, rotation = 0, mouseDown = -1, fps = [];
 
     function render() {
         requestAnimationFrame(render);
+        fps = fps.filter(f => f > Date.now() - 1000);
+        fps.push(Date.now());
         canvas.width = innerWidth;
         canvas.height = innerHeight;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        mario.draw(ctx, marioX, marioY);
-        goomba.draw(ctx, goombaX, goombaY);
+        // Put him in the middle
+        let steveX = Math.round(innerWidth / 2 - steve.width / 2);
+        let steveY = Math.round(innerHeight / 2 - steve.height / 2);
 
-        const collision = mario.checkCollision(goomba, marioX, marioY, goombaX, goombaY);
+        const rotated = cursor.clone().rotate(rotation);
 
+        rotated.draw(ctx, x, y);
+        steve.draw(ctx, steveX, steveY);
+
+        const perf = performance.now();
+        const collision = rotated.collidesWith(steve, x, y, steveX, steveY);
+        const diff = performance.now() - perf;
+
+        const fontSize = innerWidth > innerHeight ? 30 : 50;
         ctx.fillStyle = collision ? "red" : "green";
-        ctx.font = "30px Arial";
-        ctx.fillText(collision ? "Collision Detected!" : "No Collision", 10, 30);
+        ctx.font = `${fontSize}px Arial`;
+        ctx.fillText(collision ? "Collision Detected!" : "No Collision", 10, fontSize);
+        ctx.fillStyle = "black";
+        ctx.fillText("Left-right click to rotate", 10, fontSize * 2);
+        ctx.fillText(`Calculation time: ${diff.toFixed(1)}ms`, 10, fontSize * 3);
+        ctx.fillText(`FPS: ${fps.length}`, 10, fontSize * 4);
+
+        if (mouseDown === 0) rotation += 0.01;
+        if (mouseDown === 2) rotation -= 0.01;
     }
 
     render();
 
     addEventListener("mousemove", e => {
-        marioX = Math.round(e.pageX - mario.width / 2);
-        marioY = Math.round(e.pageY - mario.height / 2);
+        x = Math.round(e.pageX - cursor.width / 2);
+        y = Math.round(e.pageY - cursor.height / 2);
     });
+
+    addEventListener("mousedown", e => mouseDown = e.button);
+    addEventListener("mouseup", () => mouseDown = -1);
+    addEventListener("blur", () => mouseDown = -1);
+    addEventListener("contextmenu", e => e.preventDefault());
+    addEventListener("touchstart", e => {
+        e.preventDefault();
+        const touch = e.changedTouches[0];
+        x = Math.round(touch.pageX - cursor.width / 2);
+        y = Math.round(touch.pageY - cursor.height / 2);
+    });
+    addEventListener("touchmove", e => {
+        e.preventDefault();
+        const touch = e.changedTouches[0];
+        x = Math.round(touch.pageX - cursor.width / 2);
+        y = Math.round(touch.pageY - cursor.height / 2);
+    });
+    addEventListener("touchend", e => e.preventDefault());
 </script>
 

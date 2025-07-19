@@ -4,34 +4,63 @@ await init();
 
 export {check_collision as checkCollisionRaw} from "./pkg/collisionwasm.js";
 
-export function loadImage(src, scale = 1, smoothing = false) {
-    return new Promise((resolve, reject) => {
+export class Sprite {
+    static placeholder;
+
+    static fromPath(src, scale = 1, smooth = false) {
+        const sprite = new Sprite;
         const img = new Image();
         img.src = src;
-        img.onload = () => {
+        sprite.waiter = new Promise(r => img.onload = () => {
             const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
             canvas.width = img.width * scale;
             canvas.height = img.height * scale;
-            const ctx = canvas.getContext("2d");
-            ctx.imageSmoothingEnabled = smoothing;
+            ctx.imageSmoothingEnabled = smooth;
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            resolve(canvas);
+            sprite.source = canvas;
+            sprite.data = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            r(sprite);
+        });
+        return sprite;
+    };
+
+    static fromImage(image, scale = 1, smooth = false) {
+        const sprite = new Sprite;
+
+        if (image instanceof HTMLCanvasElement || image instanceof OffscreenCanvas) {
+            sprite.source = image;
+            sprite.data = image.getContext("2d").getImageData(0, 0, image.width, image.height);
+            return sprite;
         }
-        img.onerror = reject;
-    });
-}
 
-export class Sprite {
-    static async loadImage(data, scale = 1, smoothing = false) {
-        const img = await loadImage(data, scale, smoothing);
-        return new Sprite(img);
+        const canvas = document.createElement("canvas");
+        canvas.width = image.width * scale;
+        canvas.height = image.height * scale;
+        const ctx = canvas.getContext("2d");
+        ctx.imageSmoothingEnabled = smooth;
+        ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+        sprite.source = canvas;
+        sprite.data = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        return sprite;
     };
 
-    constructor(data, height) {
-        this.waiter = null;
-        this.source = null;
-        this.setData(data, height);
+    static fromData(data, height) {
+        const sprite = new Sprite;
+
+        if (data instanceof Uint8Array) data = data.buffer;
+        if (data instanceof ArrayBuffer) data = new Uint8ClampedArray(data);
+        if (data && "_isBuffer" in data && data._isBuffer) data = new Uint8ClampedArray(data.buffer || data, data.byteOffset, data.length);
+        if (data instanceof Uint8ClampedArray) data = new ImageData(data, data.length / (height * 4), height);
+
+        if (data instanceof ImageData) sprite.data = data;
+
+        return sprite;
     };
+
+    waiter = null;
+    source = null;
+    data = null;
 
     get width() {
         if (!this.data) return 0;
@@ -47,50 +76,54 @@ export class Sprite {
         return this.waiter;
     };
 
-    setData(data, height) {
-        if (typeof data === "string") {
-            return this.waiter = loadImage(data).then(img => this.setData(img, height));
+    transform(scaleX = 1, scaleY = 1, rotate = 0, smooth = false) {
+        if (scaleX === 1 && scaleY === 1 && rotate === 0) return this;
+        if (scaleX === 0 || scaleY === 0) throw new Error("Scale cannot be zero");
+        if (!this.data) {
+            this.waiter = this.waiter.then(() => this.transform(scaleX, scaleY, rotate, smooth));
+            return this;
         }
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        ctx.imageSmoothingEnabled = smooth;
 
-        if (data instanceof Sprite) {
-            this.source = data.source;
-            return this.data = data.data;
+        canvas.width = this.data.width * scaleX;
+        canvas.height = this.data.height * scaleY;
+
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        if (rotate !== 0) ctx.rotate(rotate);
+        if (scaleX !== 1 || scaleY !== 1) ctx.scale(scaleX, scaleY);
+        this.ensureSource();
+        ctx.drawImage(this.source, -this.data.width / 2, -this.data.height / 2);
+
+        this.source = canvas;
+        this.data = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        return this;
+    };
+
+    scale(scaleX = 1, scaleY = 0, smooth = false) {
+        return this.transform(scaleX, scaleY || scaleX, 0, smooth);
+    };
+
+    rotate(angle, smooth = false) {
+        return this.transform(1, 1, angle, smooth);
+    };
+
+    ensureSource() {
+        if (!this.source) {
+            const temp = document.createElement("canvas");
+            temp.width = this.data.width;
+            temp.height = this.data.height;
+            temp.getContext("2d").putImageData(this.data, 0, 0);
+            this.source = temp;
         }
-
-        if (data instanceof Image || data instanceof ImageBitmap) {
-            const canvas = document.createElement("canvas");
-            const scale = height ? height / data.height : 1;
-            canvas.width = data.width * scale;
-            canvas.height = data.height * scale;
-            const ctx = canvas.getContext("2d");
-            ctx.imageSmoothingEnabled = false;
-            ctx.drawImage(data, 0, 0, canvas.width, canvas.height);
-            this.source = canvas;
-            return this.data = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        }
-
-        if (data instanceof HTMLCanvasElement || data instanceof OffscreenCanvas) {
-            this.source = data;
-            return this.data = data.getContext("2d").getImageData(0, 0, data.width, data.height);
-        }
-
-        if (data instanceof Uint8Array) data = data.buffer;
-        if (data instanceof ArrayBuffer) data = new Uint8ClampedArray(data);
-        if (data && "_isBuffer" in data && data._isBuffer) data = new Uint8ClampedArray(data.buffer || data, data.byteOffset, data.length);
-
-        if (data instanceof Uint8ClampedArray) {
-            if (typeof height !== "number") throw new Error("Height must be specified for Uint8Array data");
-            return this.data = new ImageData(new Uint8ClampedArray(data), data.length / (height * 4), height);
-        }
-
-        if (data instanceof ImageData) return this.data = data;
-
-        throw new Error("Unsupported data type for Sprite: " + (data && data.constructor ? data.constructor.name : typeof data));
+        return this.source;
     };
 
     draw(ctx, x, y) {
         if (this.source) ctx.drawImage(this.source, x, y, this.source.width, this.source.height);
         else if (this.data) ctx.putImageData(this.data, x, y);
+        return this;
     };
 
     getPixel(x, y) {
@@ -104,17 +137,36 @@ export class Sprite {
         };
     };
 
-    checkCollision(other, selfX, selfY, otherX, otherY) {
-        if (!(other instanceof Sprite)) throw new Error("Other must be an instance of Sprite");
-        return Sprite.checkCollision(this, selfX, selfY, other, otherX, otherY);
+    clone() {
+        const sprite = new Sprite;
+        sprite.source = this.source;
+        sprite.data = this.data;
+        return sprite;
     };
 
-    static checkCollision(self, selfX, selfY, other, otherX, otherY) {
+    set(sprite) {
+        if (!(sprite instanceof Sprite)) throw new Error("Sprite must be an instance of Sprite");
+        this.source = sprite.source;
+        this.data = sprite.data;
+        return this;
+    };
+
+    collidesWith(other, selfX, selfY, otherX, otherY, alphaThreshold = 0.5) {
+        if (!(other instanceof Sprite)) throw new Error("Other must be an instance of Sprite");
+        return Sprite.checkCollision(this, selfX, selfY, other, otherX, otherY, alphaThreshold);
+    };
+
+    static checkCollision(self, selfX, selfY, other, otherX, otherY, alphaThreshold = 0.5) {
         if (!(self instanceof Sprite) || !(other instanceof Sprite) || !self.data || !other.data) return false;
-        console.log(1)
+        alphaThreshold = Math.round(Math.min(1, Math.max(0, alphaThreshold)) * 255);
         return check_collision(
             self.data.data, self.data.width, self.data.height, selfX, selfY,
-            other.data.data, other.data.width, other.data.height, otherX, otherY
+            other.data.data, other.data.width, other.data.height, otherX, otherY, alphaThreshold
         );
     };
 }
+
+const placeholder = document.createElement("canvas");
+placeholder.width = 1;
+placeholder.height = 1;
+Sprite.placeholder = Sprite.fromImage(placeholder);

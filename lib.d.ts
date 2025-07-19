@@ -1,30 +1,38 @@
-export {check_collision as checkCollisionRaw} from "./pkg";
+export {check_collision as checkCollisionRaw} from "./pkg/collisionwasm";
 
-export function loadImage(src: string, scale?: number): Promise<HTMLCanvasElement>;
+type ImageSource = HTMLImageElement | ImageBitmap | HTMLCanvasElement | OffscreenCanvas;
+type ImageDataSource = ImageData | Uint8Array | Uint8ClampedArray | BufferSource;
 
 export class Sprite {
-    data: string | HTMLImageElement | HTMLCanvasElement | OffscreenCanvas | Sprite
-        | ImageBitmap | ImageData | Uint8Array | ArrayBuffer | Uint8ClampedArray;
+    readonly data: ImageData;
+    readonly source: ImageSource | null;
 
-    static loadImage(src: string, height?: number): Promise<Sprite>;
+    static fromPath(src: string, scale?: number, smooth?: boolean): Sprite;
 
-    constructor(data: string | HTMLImageElement | HTMLCanvasElement | OffscreenCanvas | Sprite | ImageBitmap | ImageData);
-    constructor(data: Uint8Array | ArrayBuffer | Uint8ClampedArray, height: number);
+    static fromImage(img: ImageSource, scale?: number, smooth?: boolean): Sprite;
+
+    static fromData(data: ImageDataSource, height: number): Sprite;
 
     readonly width: number;
     readonly height: number;
-    readonly source: HTMLImageElement | ImageBitmap | HTMLCanvasElement | OffscreenCanvas | null;
 
-    wait(): Promise<this["data"]>
+    wait(): Promise<this>;
 
-    setData(data: string | HTMLImageElement | HTMLCanvasElement | OffscreenCanvas | Sprite | ImageBitmap | ImageData): void;
-    setData(data: Uint8Array | ArrayBuffer | Uint8ClampedArray, height: number): void;
+    transform(scaleX?: number, scaleY?: number, rotate?: number, smooth?: boolean): this;
 
-    draw(ctx: CanvasRenderingContext2D, x: number, y: number): void;
+    scale(scaleX: number, scaleY?: number, smooth?: boolean): this;
+
+    rotate(angle: number, smooth?: boolean): this;
+
+    draw(ctx: CanvasRenderingContext2D, x: number, y: number): this;
 
     getPixel(x: number, y: number): { r: number, g: number, b: number, a: number };
 
-    checkCollision(other: Sprite, selfX: number, selfY: number, otherX: number, otherY: number): boolean;
+    clone(): Sprite;
+
+    set(sprite: Sprite): this;
+
+    collidesWith(other: Sprite, selfX: number, selfY: number, otherX: number, otherY: number): boolean;
 
     static checkCollision(self: Sprite, other: Sprite, selfX: number, selfY: number, otherX: number, otherY: number): boolean;
 }

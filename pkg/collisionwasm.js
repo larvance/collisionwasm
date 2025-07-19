@@ -28,14 +28,15 @@ function passArray8ToWasm0(arg, malloc) {
  * @param {number} height_b
  * @param {number} offset_x_b
  * @param {number} offset_y_b
+ * @param {number} alpha_threshold
  * @returns {boolean}
  */
-export function check_collision(data_a, width_a, height_a, offset_x_a, offset_y_a, data_b, width_b, height_b, offset_x_b, offset_y_b) {
+export function check_collision(data_a, width_a, height_a, offset_x_a, offset_y_a, data_b, width_b, height_b, offset_x_b, offset_y_b, alpha_threshold) {
     const ptr0 = passArray8ToWasm0(data_a, wasm.__wbindgen_malloc);
     const len0 = WASM_VECTOR_LEN;
     const ptr1 = passArray8ToWasm0(data_b, wasm.__wbindgen_malloc);
     const len1 = WASM_VECTOR_LEN;
-    const ret = wasm.check_collision(ptr0, len0, width_a, height_a, offset_x_a, offset_y_a, ptr1, len1, width_b, height_b, offset_x_b, offset_y_b);
+    const ret = wasm.check_collision(ptr0, len0, width_a, height_a, offset_x_a, offset_y_a, ptr1, len1, width_b, height_b, offset_x_b, offset_y_b, alpha_threshold);
     return ret !== 0;
 }
 
