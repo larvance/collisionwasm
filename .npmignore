@@ -8,4 +8,4 @@ Cargo.toml
 node_modules
 pkg/package.json
 pkg/README.md
-tests
+demo

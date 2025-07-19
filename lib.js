@@ -1,4 +1,4 @@
-import init, {check_collision} from "./pkg";
+import init, {check_collision} from "./pkg/collisionwasm.js";
 
 await init();
 

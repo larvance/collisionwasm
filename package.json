@@ -1,6 +1,6 @@
 {
   "name": "collisionwasm",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Simple but very useful image collision check written in Rust which is compiled to WebAssembly.",
   "main": "lib.js",
   "scripts": {
