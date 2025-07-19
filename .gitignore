@@ -2,5 +2,6 @@
 .vscode
 Cargo.lock
 target
-pkg
 node_modules
+pkg/package.json
+pkg/README.md

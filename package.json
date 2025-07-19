@@ -1,10 +1,11 @@
 {
   "name": "collisionwasm",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Simple but very useful image collision check written in Rust which is compiled to WebAssembly.",
   "main": "lib.js",
   "scripts": {
-    "build": "wasm-pack build --release --target web"
+    "prepublishOnly": "npm run build",
+    "build": "wasm-pack build --release --target web && rm pkg/.gitignore"
   },
   "repository": {
     "type": "git",
